@@ -12,6 +12,9 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true) // 설정시 @PreAuthorize 사용 가능
@@ -26,6 +29,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         // 이렇게 설정해 놓으면 ADMIN 권한은 USER 권한을 모두 접근 할 수 있다.
         roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER");
         return roleHierarchy;
+    }
+
+    @Bean // ---- 1. cors 설정을 빈으로 등록
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.addAllowedOrigin(CorsConfiguration.ALL); // 허용할 URL
+        corsConfiguration.addAllowedHeader(CorsConfiguration.ALL); // 허용할 Header
+        corsConfiguration.addAllowedMethod(CorsConfiguration.ALL); // 허용할 Method
+        corsConfiguration.setAllowCredentials(true); // 인증 정보 허용 설정
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration);
+        return source;
     }
 
     @Override
@@ -61,7 +77,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
-                .cors().disable()
+                // ---- 2. CORS 설정 빈 추가
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
                 .authorizeRequests()
                 .antMatchers("/signup").permitAll()
                 .anyRequest().authenticated()
@@ -91,4 +109,5 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         ;
 
     }
+
 }
