@@ -82,6 +82,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/signup").permitAll()
+                .antMatchers("/chat").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 /**
